@@ -2,18 +2,23 @@ import sharp from "sharp";
 
 export class BadgeService {
 
+    // To determine if a color is "happy" based on its RGB values
     async isHappyColor(r: number, g: number, b: number): Promise<Boolean> {
         return (r > 200 && g > 200) || (r > 200 && b > 200) || (g > 200 && b > 200);
     }
 
+    // To verify if the badge image meets the specified criteria
     async verifyBadge(imagePath: string): Promise<[Boolean, String]> {
 
+        // Get image metadata
         const {width, height, channels} = await sharp(imagePath).metadata();
 
+        // Check if image size is 512x512 pixels
         if (width !== 512 || height !== 512) {
             return [false, "Size is not 512x512."];
         }
 
+        // Create a circular mask
         const circleMask = await sharp({
             create: {
                 width: 512,
@@ -31,11 +36,13 @@ export class BadgeService {
             .raw()
             .toBuffer();
 
+        // Read and resize the input image
         const img = await sharp(imagePath)
             .resize(512, 512)
             .raw()
             .toBuffer();
 
+        // Check that pixels outside the circle are transparent
         for (let y = 0; y < 512; y++) {
             for (let x = 0; x < 512; x++) {
                 const dx = x - 256;
@@ -53,6 +60,7 @@ export class BadgeService {
             }
         }
 
+        // Check for at least one "happy" color within the circle
         const colors = new Set<string>();
         // @ts-ignore
         for (let i = 0; i < img.length; i += channels) {
@@ -69,6 +77,7 @@ export class BadgeService {
         return [true, "The badge is valid."];
     }
 
+    // Function to convert any image to the specified circular badge format
     async convertImageToBadge(imagePath: string, outputPath: string) {
         const circleMask = await sharp({
             create: {

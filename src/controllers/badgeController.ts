@@ -7,25 +7,28 @@ import * as fs from "node:fs";
 
 export const badgeRoute = (app: express.Express) => {
 
+    // Route for verifying a badge
     app.post('/verify-badge', upload.single('image'), async (req: Request, res: Response) => {
         const filePath = req.file?.path;
         if (!filePath) {
-            return res.status(400).json({error: 'No file uploaded'});
+            return res.status(400).json({ error: 'No file uploaded' });
         }
 
         try {
             const badgeService = new BadgeService();
             const [isValid, message] = await badgeService.verifyBadge(filePath);
-            res.json({valid: isValid, message: message});
+            res.json({ valid: isValid, message: message });
         } catch (error: any) {
-            res.status(500).json({error: error.message});
+            res.status(500).json({ error: error.message });
         } finally {
+            // Delete the uploaded file after processing
             fs.unlink(filePath, (err) => {
                 if (err) console.error(`Error deleting file: ${err.message}`);
             });
         }
     });
 
+    // Route for converting an image to a badge
     app.post('/convert-image', upload.single('image'), async (req: Request, res: Response) => {
         const filePath = req.file?.path;
         if (!filePath) {
