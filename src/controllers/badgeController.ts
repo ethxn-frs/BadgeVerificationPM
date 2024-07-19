@@ -2,6 +2,7 @@ import express, {Request, Response} from "express";
 import upload from "../middleware/multer";
 import {BadgeService} from "../services/badgeService";
 import path from "path";
+import * as fs from "node:fs";
 
 
 export const badgeRoute = (app: express.Express) => {
@@ -18,6 +19,10 @@ export const badgeRoute = (app: express.Express) => {
             res.json({valid: isValid, message: message});
         } catch (error: any) {
             res.status(500).json({error: error.message});
+        } finally {
+            fs.unlink(filePath, (err) => {
+                if (err) console.error(`Error deleting file: ${err.message}`);
+            });
         }
     });
 
