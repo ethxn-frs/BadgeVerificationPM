@@ -38,10 +38,17 @@ export class BadgeService {
 
         for (let y = 0; y < 512; y++) {
             for (let x = 0; x < 512; x++) {
+                const dx = x - 256;
+                const dy = y - 256;
+                const distanceSquared = dx * dx + dy * dy;
                 // @ts-ignore
-                const index = (512 * x + y) * channels;
-                if (circleMask[index + 3] === 0 && img[index + 3] !== 0) {
-                    return [false, "Non transparent pixels found outside the circle."];
+                const index = (y * 512 + x) * channels;
+
+                if (distanceSquared > 256 * 256) {
+                    if (img[index + 3] !== 0) {
+                        console.log(`Non-transparent pixel found at x=${x}, y=${y}, index=${index}, alpha=${img[index + 3]}`);
+                        return [false, "Non-transparent pixels found outside the circle."];
+                    }
                 }
             }
         }
